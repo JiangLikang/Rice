@@ -33,7 +33,7 @@ function heightLoop(tree) {
 // 广度遍历, 创建一个执行队列, 当队列为空的时候则结束
 function widthLoop(tree) {
   let result = [];
-  let queue = tree;
+  let queue = [...tree];
   while (queue.length > 0) {
       [...queue].forEach(item => {
           queue.shift();
