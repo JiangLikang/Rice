@@ -40,3 +40,8 @@ function throttle(fn, delay) {
     }, delay)
   }
 }
+
+/* 
+clearTimeout的作用仅仅是阻止callback执行，当setTimeout的callback函数已经开始执行的时候，
+timer就无效了，clearTimeout也没什么用，啥也不会做
+ */
