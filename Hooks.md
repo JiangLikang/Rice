@@ -49,3 +49,45 @@ export default function App(props){
   );
 }
 ```
+
+## useReducer
+
+尽管 useReducer 是扩展的 hook， 而 useState 是基本的 hook，但 useState 实际上执行的也是一个 useReducer。`这意味着 useReducer 是更原生的`，你能在任何使用 useState 的地方都替换成使用 useReducer
+
+在某些场景下，useReducer 会比 useState 更适用，例如 state 逻辑较复杂且包含多个子值，或者下一个 state 依赖于之前的 state 等。并且，使用 useReducer 还能给那些会触发深更新的组件做性能优化，因为你可以向子组件传递 dispatch 而不是回调函数（利用useContext） 。
+
+```js
+const [items, dispatch] = useReducer((state, { type, payload }) => {
+    switch (type) {
+      // do something with the action
+    }
+  }, []);
+```
+
+```jsx
+const TodosDispatch = React.createContext(null);
+
+function TodosApp() {
+  // 提示：`dispatch` 不会在重新渲染之间变化
+  const [todos, dispatch] = useReducer(todosReducer);
+
+  return (
+    <TodosDispatch.Provider value={dispatch}>
+      <DeepTree todos={todos} />
+    </TodosDispatch.Provider>
+  );
+}
+
+function DeepChild(props) {
+  // 如果我们想要执行一个 action，我们可以从 context 中获取 dispatch。
+  const dispatch = useContext(TodosDispatch);
+
+  function handleClick() {
+    dispatch({ type: 'add', text: 'hello' });
+  }
+
+  return (
+    <button onClick={handleClick}>Add todo</button>
+  );
+}
+```
