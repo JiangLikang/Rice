@@ -33,11 +33,11 @@ clean-webpack-plugin : 删除打包文件
 happypack：实现多线程加速编译
 
 ## 如何利用 webpack 来优化前端性能？
-1.压缩代码。删除多余的代码、注释、简化代码的写法等等方式。
+1. 压缩代码。删除多余的代码、注释、简化代码的写法等等方式。
 用 UglifyJsPlugin和ParallelUglifyPlugin 压缩JS文件
 用 mini-css-extract-plugin 压缩 CSS
 
-2.利用 CDN 加速。在构建过程中，将引用的静态资源路径修改为CDN上对应的路径。可以利用 webpack 对于output 参数和各 loader 的 publicPath 参数来修改资源路径
+2. 利用 CDN 加速。在构建过程中，将引用的静态资源路径修改为CDN上对应的路径。可以利用 webpack 对于output 参数和各 loader 的 publicPath 参数来修改资源路径
 3.删除死代码。JS 用 Tree Shaking，CSS 需要使用 Purify-CSS
 4.提取公共代码。用 CommonsChunkPlugin 插件
 
@@ -47,27 +47,27 @@ chunk：代码块，一个 chunk 由多个模块组合而成，用于代码的�
 module：是开发中的单个模块，在 webpack 的世界，一切皆模块，一个模块对应一个文件，webpack 会从配置的 entry 中递归开始找出所有依赖的模块。
 
 # 如何提高 webpack 的构建速度？
-1.多入口情况下，使用 CommonsChunkPlugin 来提取公共代码
-2.通过externals配置来提取常用库
-3.利用 DllPlugin 和 DllReferencePlugin 预编译资源模块 通过 DllPlugin 来对那些我们引用但是绝对不会修改的npm包来进行预编译，再通过 DllReferencePlugin 将预编译的模块加载进来。
-4.使用 Happypack 实现多线程加速编译
-5.使用 webpack-uglify-parallel 来提升 uglifyPlugin 的压缩速度。 原理上 webpack-uglify-parallel 采用了多核并行压缩来提升压缩速度
-6.使用 Tree-shaking 和 Scope Hoisting 来剔除多余代码
+1. 多入口情况下，使用 CommonsChunkPlugin 来提取公共代码
+2. 通过externals配置来提取常用库
+3. 利用 DllPlugin 和 DllReferencePlugin 预编译资源模块 通过 DllPlugin 来对那些我们引用但是绝对不会修改的npm包来进行预编译，再通过 DllReferencePlugin 将预编译的模块加载进来。
+4. 使用 Happypack 实现多线程加速编译
+5. 使用 webpack-uglify-parallel 来提升 uglifyPlugin 的压缩速度。 原理上 webpack-uglify-parallel 采用了多核并行压缩来提升压缩速度
+6. 使用 Tree-shaking 和 Scope Hoisting 来剔除多余代码
 
 ## .npm 打包时需要注意哪些？如何利用 webpack 来更好的构建？
-1.要支持 CommonJS 模块化规范，所以要求打包后的最后结果也遵守该规则。
+1. 要支持 CommonJS 模块化规范，所以要求打包后的最后结果也遵守该规则。
 `设置output.libraryTarget='commonjs2'使输出的代码符合CommonJS2 模块化规范，以供给其它模块导入使用`
 
-2.Npm模块使用者的环境是不确定的，很有可能并不支持ES6，所以打包的最后结果应该是采用ES5编写的。并且如果ES5是经过转换的，请最好连同SourceMap一同上传。
+2. Npm模块使用者的环境是不确定的，很有可能并不支持ES6，所以打包的最后结果应该是采用ES5编写的。并且如果ES5是经过转换的，请最好连同SourceMap一同上传。
 `使用babel-loader把 ES6 代码转换成 ES5 的代码。再通过开启devtool: 'source-map'输出SourceMap以发布调试。`
 
-3.Npm包大小应该是尽量小（有些仓库会限制包大小）
+3. Npm包大小应该是尽量小（有些仓库会限制包大小）
 `Babel 在把 ES6 代码转换成 ES5 代码时会注入一些辅助函数，最终导致每个输出的文件中都包含这段辅助函数的代码，造成了代码的冗余。解决方法是修改.babelrc文件，为其加入transform-runtime插件`
 
-4.发布的模块不能将依赖的模块也一同打包，应该让用户选择性的去自行安装。这样可以避免模块应用者再次打包时出现底层模块被重复打包的情况。
+4. 发布的模块不能将依赖的模块也一同打包，应该让用户选择性的去自行安装。这样可以避免模块应用者再次打包时出现底层模块被重复打包的情况。
 `不能将依赖模块打包到NPM模块中的解决方案：使用externals配置项来告诉webpack哪些模块不需要打包。`
 
-5.UI组件类的模块应该将依赖的其它资源文件，例如.css文件也需要包含在发布的模块里。
+5. UI组件类的模块应该将依赖的其它资源文件，例如.css文件也需要包含在发布的模块里。
 `通过css-loader和extract-text-webpack-plugin来实现`
 
 ## .文件指纹是什么？怎么用？
