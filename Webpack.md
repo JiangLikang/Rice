@@ -122,8 +122,8 @@ folder 文件所在的文件夹
 contenthash 文件的内容hash，默认是md5生成
 hash 文件内容的hash，默认是md5生成
 emoji 一个随机的指代文件内容的emoji
-const path = require('path');
 ```js
+const path = require('path');
 module.exports = {
     entry: './src/index.js',
     output: {
