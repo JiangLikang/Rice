@@ -73,3 +73,59 @@ serialPromises = promises =>  {
     await promises[i]
   }
 }
+
+// 利用promise.race实现异步并发请求最大并发数的控制
+class PoolRequest{
+  // 连接池
+  #quene = [];
+  #max = 1;
+
+  #doRequest(url) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        url % 2 == 0 ? resolve() : reject();
+      }, url);
+    });
+  }
+
+  constructor(limit = 1) {
+    // limit check
+    this.#max = limit;
+  }
+
+  get(url, callback) {
+    if(this.#quene.length >= this.#max) {
+      return Promise.race(this.#quene).finally(() => this.get(url, callback));
+    }
+    let promise = this.#doRequest(url);
+    let fin = () => {
+      let index = this.#quene.indexOf(promise);
+      this.#quene.splice(index, 1);
+    }
+    let res = (data) => {
+      callback(null, data);
+    }
+    let rej = (err) => {
+      callback(err);
+    }
+    promise.then(res, rej).finally(fin);
+  
+    this.#quene.push(promise);
+  }
+}
+
+const p = new PoolRequest(5);
+let callback = (index) => {
+  return (err, data) => {
+    console.log(index);
+    console.log(err);
+    console.log(data);
+  }
+}
+p.get(10000, callback(1));
+p.get(10001, callback(2));
+p.get(5000, callback(3));
+p.get(10000, callback(4));
+p.get(10001, callback(5));
+p.get(11000, callback(6));
+
