@@ -75,27 +75,27 @@ serialPromises = promises =>  {
 }
 
 // 利用promise.race实现异步并发请求最大并发数的控制
+const urls = Array(9).fill('').map((_, index) => ({url: `url${index}`, time: Math.random()*3000}))
 class PoolRequest{
   // 连接池
   #quene = [];
   #max = 1;
+  #doRequest = () => {};
 
-  #doRequest(url) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        url % 2 == 0 ? resolve() : reject();
-      }, url);
-    });
-  }
-
-  constructor(limit = 1) {
+  constructor(doRequest, limit = 1) {
     // limit check
     this.#max = limit;
+    this.#doRequest = doRequest
   }
 
   get(url, callback) {
     if(this.#quene.length >= this.#max) {
-      return Promise.race(this.#quene).finally(() => this.get(url, callback));
+      return Promise.race(this.#quene)
+      .then(() => this.get(url, callback))
+      .catch(err => {
+        this.get(url, callback)
+        // console.log('err')
+      });
     }
     let promise = this.#doRequest(url);
     let fin = () => {
@@ -106,7 +106,7 @@ class PoolRequest{
       callback(null, data);
     }
     let rej = (err) => {
-      callback(err);
+      callback('err');
     }
     promise.then(res, rej).finally(fin);
   
@@ -114,18 +114,69 @@ class PoolRequest{
   }
 }
 
-const p = new PoolRequest(5);
-let callback = (index) => {
-  return (err, data) => {
-    console.log(index);
-    console.log(err);
-    console.log(data);
-  }
+
+let callback = (err, data) => {
+  // console.log(err);
+  // console.log(data);
+  console.log('执行一次回调')
 }
-p.get(10000, callback(1));
-p.get(10001, callback(2));
-p.get(5000, callback(3));
-p.get(10000, callback(4));
-p.get(10001, callback(5));
-p.get(11000, callback(6));
+function urlHandler(url) {
+  return new Promise((resolve, reject) => {
+    console.log(`${url.url} start!`)
+    setTimeout(() => {
+      if (Math.random()*10 > 5) {
+        console.log(`${url.url} end! success`)
+        resolve()
+      } else {
+        console.log(`${url.url} end! failed`)
+        reject()
+      }
+    }, url.time)
+  })
+}
+
+const p = new PoolRequest(urlHandler, 3)
+urls.forEach(v => p.get(v,callback))
+
+
+
+//并发控制函数示例 如何处理reject的情况？
+const urls = Array(9).fill('').map((_, index) => ({url: `url${index}`, time: Math.random()*3000}))
+
+function urlHandler(url) {
+  return new Promise((resolve, reject) => {
+    console.log(`${url.url} start!`)
+    setTimeout(() => {
+      console.log(`${url.url} end! ${url.time}`)
+      resolve()
+      // if (Math.random()*10 > 5) {
+      //   resolve(`${url.url} is end! success`)
+      // } else {
+      //   reject()
+      // }
+    }, url.time)
+  })
+}
+
+function limitWorker(data, handler, limit) {
+  let sequence = [...data]
+  let pool = []
+
+  pool = sequence.splice(0, limit)
+                 .map((item, index) => handler(item).then(() => index))
+
+  let promise = Promise.race(pool)
+
+  sequence.forEach(p => {
+    promise = promise.then(index => {
+      pool[index] = handler(p).then(() => {
+        return index
+      }) 
+      return Promise.race(pool)
+    })
+
+  }) 
+}
+
+limitWorker(urls, urlHandler, 3)
 
